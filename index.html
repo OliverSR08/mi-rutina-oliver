@@ -1,0 +1,920 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-title" content="Mi rutina">
+<title>Mi rutina</title>
+<meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+<meta name="theme-color" content="#E6EAEF" media="(prefers-color-scheme: light)">
+<meta name="theme-color" content="#12161D" media="(prefers-color-scheme: dark)">
+<link rel="manifest" href="manifest.webmanifest">
+<link rel="apple-touch-icon" href="icons/apple-touch-icon.png">
+<link rel="icon" type="image/png" href="icons/icon-192.png">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root {
+  --bg: #E6EAEF;
+  --paper: #FFFFFF;
+  --ink: #1B2230;
+  --muted: #5B6578;
+  --line: #D3D9E1;
+  --red: #D21F3C;
+  --blue: #2A57CF;
+  --green: #1B8656;
+  --soft: #F1F4F8;
+  color-scheme: light;
+  box-sizing: border-box;
+  padding-top: env(safe-area-inset-top, 0px);
+  padding-bottom: env(safe-area-inset-bottom, 0px);
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #12161D; --paper: #1D232D; --ink: #EEF1F5; --muted: #9AA4B5; --line: #2E3643;
+    --red: #FF5C73; --blue: #7EA0FF; --green: #4FCB8E; --soft: #252C38;
+    color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #12161D; --paper: #1D232D; --ink: #EEF1F5; --muted: #9AA4B5; --line: #2E3643;
+  --red: #FF5C73; --blue: #7EA0FF; --green: #4FCB8E; --soft: #252C38;
+  color-scheme: dark;
+}
+*, *::before, *::after { box-sizing: inherit; }
+html { scroll-padding-top: env(safe-area-inset-top, 0px); background: var(--bg); }
+body {
+  margin: 0;
+  background: var(--bg);
+  color: var(--ink);
+  font-family: "Bricolage Grotesque", -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-size: 17px;
+  line-height: 1.5;
+  -webkit-font-smoothing: antialiased;
+}
+.app { max-width: 480px; margin: 0 auto; padding: 18px 18px calc(100px + env(safe-area-inset-bottom, 0px)); }
+[hidden] { display: none !important; }
+
+/* Header */
+.head { display: grid; grid-template-columns: auto 1fr; column-gap: 14px; align-items: end; margin: 6px 0 22px; }
+.daynum { grid-row: span 2; font-size: 84px; font-weight: 800; line-height: .82; letter-spacing: -0.04em; color: var(--red); font-variant-numeric: tabular-nums; }
+.weekday { font-size: 24px; font-weight: 800; line-height: 1.1; }
+.phase { color: var(--muted); font-size: 16px; line-height: 1.3; }
+.view-title { font-size: 32px; font-weight: 800; letter-spacing: -0.01em; line-height: 1.1; margin: 6px 0 6px; }
+.view-sub { color: var(--muted); margin: 0 0 20px; }
+
+/* Cards */
+.card { background: var(--paper); border-radius: 16px; padding: 18px; margin-bottom: 14px; border: 1.5px solid var(--line); }
+.card h2 { font-size: 20px; font-weight: 800; margin: 0 0 4px; line-height: 1.2; }
+.card .note { color: var(--muted); font-size: 15px; margin: 0 0 12px; }
+.card p { margin: 0 0 10px; }
+.card p:last-child { margin-bottom: 0; }
+
+/* Checklist */
+.checks { list-style: none; margin: 0; padding: 0; }
+.checks li + li { border-top: 1px solid var(--line); }
+.check {
+  display: flex; align-items: center; gap: 14px; width: 100%;
+  background: none; border: none; border-radius: 0; min-height: 56px; padding: 8px 0;
+  text-align: left; font: inherit; color: var(--ink); cursor: pointer;
+}
+.box { flex: none; width: 28px; height: 28px; border-radius: 8px; border: 2px solid var(--line); display: grid; place-items: center; }
+.check[aria-pressed="true"] .box { background: var(--green); border-color: var(--green); }
+.check[aria-pressed="true"] .box::after { content: ""; width: 7px; height: 13px; border: solid var(--paper); border-width: 0 3px 3px 0; transform: translateY(-2px) rotate(45deg); }
+.check[aria-pressed="true"] .ctext { color: var(--muted); text-decoration: line-through; }
+.ctext small { display: block; color: var(--muted); font-size: 14px; text-decoration: none; }
+.meter { height: 8px; background: var(--soft); border-radius: 99px; overflow: hidden; margin: 2px 0 6px; }
+.meter span { display: block; height: 100%; background: var(--green); border-radius: 99px; transition: width .25s ease; }
+.meter-label { font-size: 15px; color: var(--muted); margin: 0 0 6px; }
+
+/* Timeline */
+.timeline { list-style: none; margin: 0; padding: 0; }
+.timeline li { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 9px 0; }
+.timeline li + li { border-top: 1px solid var(--line); }
+.timeline .t { font-weight: 600; font-variant-numeric: tabular-nums; color: var(--muted); }
+.timeline .now .t { color: var(--red); }
+.timeline .now .w { font-weight: 600; }
+.timeline .w small { display: block; color: var(--muted); font-size: 14px; }
+
+/* Exercise list */
+.seg { display: grid; grid-template-columns: 1fr 1fr; background: var(--soft); border-radius: 12px; padding: 4px; margin-bottom: 16px; }
+.seg button { min-height: 44px; border: none; background: none; border-radius: 9px; font: inherit; font-weight: 600; color: var(--muted); cursor: pointer; }
+.seg button[aria-pressed="true"] { background: var(--paper); color: var(--ink); }
+.ex { list-style: none; margin: 0; padding: 0; }
+.ex li { display: flex; justify-content: space-between; gap: 12px; padding: 10px 0; }
+.ex li + li { border-top: 1px solid var(--line); }
+.ex .reps { color: var(--muted); white-space: nowrap; font-variant-numeric: tabular-nums; }
+.ex .tip { display: block; font-size: 14px; color: var(--muted); }
+.tag { display: inline-block; font-size: 14px; font-weight: 600; padding: 2px 10px 3px; border-radius: 99px; border: 1.5px solid currentColor; color: var(--blue); margin-bottom: 8px; }
+.tag.today { color: var(--red); }
+table { width: 100%; border-collapse: collapse; font-size: 15px; }
+th, td { text-align: left; padding: 8px 6px 8px 0; border-top: 1px solid var(--line); vertical-align: top; }
+th { color: var(--muted); font-weight: 600; border-top: none; }
+.tablewrap { overflow-x: auto; }
+
+/* Meals */
+.meal { display: grid; grid-template-columns: 74px 1fr; gap: 10px; padding: 10px 0; }
+.meal + .meal { border-top: 1px solid var(--line); }
+.meal .t { font-weight: 600; color: var(--muted); font-variant-numeric: tabular-nums; }
+.meal b { display: block; }
+ul.plain { margin: 0; padding-left: 20px; }
+ul.plain li { margin-bottom: 6px; }
+
+/* Progress */
+.form { display: grid; grid-template-columns: 1fr auto; gap: 10px; }
+input[type="text"] {
+  font: inherit; font-size: 22px; font-weight: 600; color: var(--ink); background: var(--soft);
+  border: 1.5px solid var(--line); border-radius: 12px; padding: 10px 14px; min-height: 54px; width: 100%;
+}
+.btn {
+  font: inherit; font-weight: 600; font-size: 16px; color: var(--paper); background: var(--ink);
+  border: none; border-radius: 12px; min-height: 54px; padding: 0 18px; cursor: pointer;
+}
+.btn:active, .check:active { transform: scale(.98); }
+.form-msg { font-size: 14px; color: var(--muted); margin: 8px 0 0; min-height: 1.5em; }
+.stats { display: grid; grid-template-columns: repeat(3, 1fr); gap: 10px; margin-bottom: 14px; }
+.stat { background: var(--paper); border: 1.5px solid var(--line); border-radius: 14px; padding: 12px; }
+.stat b { display: block; font-size: 26px; font-weight: 800; line-height: 1.1; font-variant-numeric: tabular-nums; }
+.stat span { font-size: 14px; color: var(--muted); }
+.stat.goal b { color: var(--red); }
+svg.chart { width: 100%; height: auto; display: block; }
+.entries { list-style: none; margin: 0; padding: 0; }
+.entries li { display: flex; justify-content: space-between; align-items: center; padding: 6px 0; }
+.entries li + li { border-top: 1px solid var(--line); }
+.entries .del { background: none; border: none; color: var(--muted); font: inherit; font-size: 14px; min-height: 40px; padding: 0 4px; cursor: pointer; }
+.sync { font-size: 14px; color: var(--muted); text-align: center; margin: 4px 0 0; }
+
+button:focus-visible, a:focus-visible, input:focus-visible { outline: 3px solid var(--blue); outline-offset: 2px; }
+
+/* Tabs */
+.tabs {
+  position: fixed; left: 0; right: 0; bottom: 0;
+  display: flex; justify-content: center; gap: 4px;
+  padding: 8px 10px calc(8px + env(safe-area-inset-bottom, 0px));
+  background: color-mix(in srgb, var(--bg) 88%, transparent);
+  backdrop-filter: blur(12px); -webkit-backdrop-filter: blur(12px);
+  border-top: 1px solid var(--line);
+}
+.tabs a { flex: 1; max-width: 120px; text-align: center; text-decoration: none; color: var(--muted); font-weight: 600; font-size: 15px; padding: 10px 0; border-radius: 12px; }
+.tabs a[aria-current="page"] { color: var(--ink); background: var(--paper); }
+
+/* Ideas */
+.i-pad { position: relative; perspective: 900px; }
+.i-sheet {
+  position: relative; background: var(--paper); border-radius: 6px 6px 18px 18px;
+  padding: 34px 22px 24px; border: 1.5px solid var(--line); transform-origin: 50% 0;
+}
+.i-sheet::before {
+  content: ""; position: absolute; top: 10px; left: 18px; right: 18px; height: 10px;
+  background: radial-gradient(circle, var(--bg) 4px, transparent 4.5px) 0 0 / 22px 10px repeat-x;
+}
+.i-date { display: grid; grid-template-columns: auto 1fr; column-gap: 12px; align-items: end; padding-bottom: 14px; border-bottom: 2px dashed var(--line); margin-bottom: 18px; }
+.i-num { grid-row: span 2; font-size: 64px; font-weight: 800; line-height: .82; letter-spacing: -0.04em; color: var(--red); font-variant-numeric: tabular-nums; }
+.i-wd { font-size: 20px; font-weight: 600; line-height: 1.1; }
+.i-mo { color: var(--muted); font-size: 15px; }
+.i-cat { display: inline-block; font-size: 14px; font-weight: 600; padding: 2px 10px 3px; border-radius: 99px; border: 1.5px solid currentColor; margin-bottom: 10px; }
+.i-cat.e { color: var(--blue); } .i-cat.v { color: var(--red); } .i-cat.t { color: var(--green); }
+.i-title { font-size: 25px; line-height: 1.15; font-weight: 800; margin: 0 0 10px; }
+.i-step { background: var(--soft); border-radius: 12px; padding: 12px 14px; margin-top: 16px; }
+.i-step b { display: block; font-size: 14px; color: var(--muted); font-weight: 600; }
+.i-done { position: absolute; top: 34px; right: 20px; font-size: 14px; font-weight: 600; color: var(--green); border: 2px solid currentColor; border-radius: 8px; padding: 1px 8px; transform: rotate(6deg); }
+.i-actions { display: grid; grid-template-columns: 52px 1fr 1fr 52px; gap: 10px; margin-top: 18px; }
+.i-actions button { font: inherit; font-weight: 600; font-size: 16px; color: var(--ink); background: var(--paper); border: 1.5px solid var(--line); border-radius: 14px; min-height: 52px; cursor: pointer; }
+.i-actions button:disabled { opacity: .35; }
+.i-actions .arrow { font-size: 22px; }
+.i-actions [aria-pressed="true"].i-bdone { background: var(--green); border-color: var(--green); color: var(--paper); }
+.i-actions [aria-pressed="true"].i-bsave { background: var(--ink); border-color: var(--ink); color: var(--paper); }
+.i-status { text-align: center; color: var(--muted); font-size: 15px; margin: 14px 0 0; }
+.i-today { display: block; margin: 6px auto 0; background: none; border: none; color: var(--red); font: inherit; font-size: 15px; min-height: 40px; cursor: pointer; }
+.i-saved { list-style: none; padding: 0; margin: 0; }
+.i-saved li { background: var(--paper); border: 1.5px solid var(--line); border-radius: 14px; padding: 14px 16px; margin-bottom: 10px; }
+.i-saved summary { font-weight: 600; font-size: 18px; line-height: 1.25; cursor: pointer; list-style: none; }
+.i-saved summary::-webkit-details-marker { display: none; }
+.i-saved details p { margin: 8px 0 0; }
+.i-saved .rm { margin-top: 10px; font: inherit; font-size: 14px; background: none; border: 1.5px solid var(--line); color: var(--ink); border-radius: 10px; min-height: 40px; padding: 0 12px; cursor: pointer; }
+@media (prefers-reduced-motion: no-preference) {
+  .i-sheet.go-f { animation: tearF .3s ease-in forwards; }
+  .i-sheet.go-b { animation: tearB .3s ease-in forwards; }
+  .i-sheet.in { animation: tearIn .26s ease-out; }
+  @keyframes tearF { to { transform: translate(40px, 60px) rotate(9deg); opacity: 0; } }
+  @keyframes tearB { to { transform: translate(-40px, 60px) rotate(-9deg); opacity: 0; } }
+  @keyframes tearIn { from { transform: translateY(-10px); opacity: 0; } to { transform: none; opacity: 1; } }
+}
+.tabs a { font-size: 14px; }
+</style>
+</head>
+<body>
+<main class="app">
+
+  <!-- HOY -->
+  <section id="v-hoy">
+    <header class="head">
+      <span class="daynum" id="hDay"></span>
+      <span class="weekday" id="hWeekday"></span>
+      <span class="phase" id="hPhase"></span>
+    </header>
+    <div class="card">
+      <h2>Lo de hoy</h2>
+      <div class="meter"><span id="meterBar" style="width:0%"></span></div>
+      <p class="meter-label" id="meterLabel"></p>
+      <ul class="checks" id="checks"></ul>
+    </div>
+    <div class="card">
+      <h2>Horario</h2>
+      <ul class="timeline" id="timeline"></ul>
+    </div>
+  </section>
+
+  <!-- ENTRENO -->
+  <section id="v-entreno" hidden>
+    <h1 class="view-title">Entreno</h1>
+    <p class="view-sub" id="eSub"></p>
+    <div class="card" id="eToday"></div>
+    <div class="seg" role="group" aria-label="Fase">
+      <button id="segCasa" aria-pressed="true">En casa</button>
+      <button id="segGym" aria-pressed="false">Gimnasio</button>
+    </div>
+    <div id="eBody"></div>
+    <div class="card">
+      <h2>Pasos y cardio por etapa</h2>
+      <div class="tablewrap">
+        <table>
+          <thead><tr><th>Etapa</th><th>Pasos al día</th><th>Cardio extra</th></tr></thead>
+          <tbody>
+            <tr><td>Mes 1–2</td><td>7.000–8.000</td><td>No hace falta</td></tr>
+            <tr><td>Mes 3–4</td><td>9.000–10.000</td><td>15 min de cinta inclinada tras entrenar</td></tr>
+            <tr><td>Mes 5–8</td><td>10.000 o más</td><td>20–25 min de cinta o bici</td></tr>
+          </tbody>
+        </table>
+      </div>
+    </div>
+  </section>
+
+  <!-- COMIDA -->
+  <section id="v-comida" hidden>
+    <h1 class="view-title">Comida</h1>
+    <p class="view-sub">Unas 1.900–2.000 kcal y 120 g de proteína al día.</p>
+    <div class="card">
+      <h2>Menú del día</h2>
+      <div id="meals"></div>
+    </div>
+    <div class="card">
+      <h2>Para ir rotando</h2>
+      <p><b>Proteínas:</b> pollo, pavo, merluza, salmón, atún, huevos, ternera magra, lentejas o garbanzos.</p>
+      <p><b>Carbohidratos:</b> arroz, pasta, patata, pan integral o avena.</p>
+      <p><b>Verduras:</b> todas las que quieras. Sacian mucho y aportan poco.</p>
+    </div>
+    <div class="card">
+      <h2>Método del plato</h2>
+      <p>En comida y cena: la mitad del plato con verduras, un cuarto con proteína y un cuarto con carbohidrato.</p>
+    </div>
+    <div class="card">
+      <h2>Reglas</h2>
+      <ul class="plain">
+        <li>Agua, café o té sin azúcar. Nada de refrescos ni zumos.</li>
+        <li>Pesa la comida en crudo las primeras 2–3 semanas para aprender las raciones.</li>
+        <li>Una comida libre a la semana, no un día entero.</li>
+        <li>Si tienes hambre, añade verdura o proteína, no pan ni dulces.</li>
+        <li>Cada 5 kg perdidos, baja unas 100 kcal (un poco menos de arroz o pan).</li>
+      </ul>
+    </div>
+  </section>
+
+  <!-- PROGRESO -->
+  <section id="v-progreso" hidden>
+    <h1 class="view-title">Progreso</h1>
+    <p class="view-sub">Pésate 3 mañanas por semana, en ayunas y después del baño.</p>
+    <div class="card">
+      <h2>Peso de hoy</h2>
+      <p class="note">Si ya te has pesado hoy, se sustituye.</p>
+      <div class="form">
+        <input type="text" id="wInput" inputmode="decimal" placeholder="82,0" aria-label="Peso en kg" autocomplete="off">
+        <button class="btn" id="wSave">Guardar peso</button>
+      </div>
+      <p class="form-msg" id="wMsg" role="status"></p>
+    </div>
+    <div class="stats">
+      <div class="stat"><b id="sNow">–</b><span>Peso actual</span></div>
+      <div class="stat"><b id="sLost">–</b><span>Perdidos</span></div>
+      <div class="stat goal"><b id="sLeft">–</b><span>Hasta 65 kg</span></div>
+    </div>
+    <div class="card">
+      <h2>Evolución</h2>
+      <p class="note">La línea discontinua es tu objetivo.</p>
+      <div id="chart"></div>
+    </div>
+    <div class="card">
+      <h2>Media por semana</h2>
+      <p class="note">Fíjate en esta media, no en el peso de un solo día.</p>
+      <ul class="entries" id="weekly"></ul>
+    </div>
+    <div class="card">
+      <h2>Registros</h2>
+      <ul class="entries" id="entries"></ul>
+    </div>
+    <p class="sync" id="sync">Tus datos se guardan solo en este móvil.</p>
+  </section>
+
+  <!-- IDEAS -->
+  <section id="v-ideas" hidden>
+    <div class="seg" role="group" aria-label="Ideas">
+      <button id="iSegHoy" aria-pressed="true">Idea del día</button>
+      <button id="iSegSaved" aria-pressed="false">Guardadas</button>
+    </div>
+    <div id="iDayView">
+      <div class="i-pad">
+        <article class="i-sheet" id="iSheet">
+          <span class="i-done" id="iDoneMark" hidden>Hecha</span>
+          <div class="i-date">
+            <span class="i-num" id="iNum"></span>
+            <span class="i-wd" id="iWd"></span>
+            <span class="i-mo" id="iMo"></span>
+          </div>
+          <span class="i-cat" id="iCat"></span>
+          <h1 class="i-title" id="iTitle"></h1>
+          <p id="iDesc" style="margin:0"></p>
+          <div class="i-step"><b>Primer paso</b><span id="iStep"></span></div>
+        </article>
+      </div>
+      <div class="i-actions">
+        <button class="arrow" id="iPrev" aria-label="Día anterior">‹</button>
+        <button class="i-bdone" id="iDone" aria-pressed="false">Hecha</button>
+        <button class="i-bsave" id="iSave" aria-pressed="false">Guardar</button>
+        <button class="arrow" id="iNext" aria-label="Día siguiente">›</button>
+      </div>
+      <p class="i-status" id="iStatus"></p>
+      <button class="i-today" id="iToday" hidden>Volver a la idea de hoy</button>
+    </div>
+    <div id="iSavedView" hidden>
+      <ul class="i-saved" id="iSavedList"></ul>
+    </div>
+  </section>
+</main>
+
+<nav class="tabs" aria-label="Secciones">
+  <a href="#hoy" data-v="hoy">Hoy</a>
+  <a href="#entreno" data-v="entreno">Entreno</a>
+  <a href="#comida" data-v="comida">Comida</a>
+  <a href="#progreso" data-v="progreso">Progreso</a>
+  <a href="#ideas" data-v="ideas">Ideas</a>
+</nav>
+
+<script>
+/* ---------- Plan ---------- */
+const START = new Date(2026, 10, 5);
+const GOAL = 65;
+const START_WEIGHT = 82;
+const GYM_FROM_DAY = 42; // semana 7
+const DAY = 86400000;
+
+const HOME = [
+  ["Sentadilla a una silla", "3 × 10–12", "Siéntate y levántate sin impulso."],
+  ["Flexiones en pared o mesa", "3 × 8–12", "Cuando sea fácil, baja a la mesa y luego al suelo."],
+  ["Puente de glúteo", "3 × 12–15", "Aprieta el glúteo un segundo arriba."],
+  ["Remo con mochila cargada", "3 × 10–12 por brazo", "Mete libros en la mochila."],
+  ["Zancada atrás con apoyo en silla", "3 × 8 por pierna", "Paso largo y rodilla de delante estable."],
+  ["Plancha", "3 × 20–30 s", "Puede ser con rodillas apoyadas."]
+];
+const GYM = {
+  A: [["Prensa de piernas", "3 × 8–12"], ["Press de pecho en máquina", "3 × 8–12"], ["Jalón al pecho", "3 × 8–12"], ["Curl femoral", "3 × 8–12"], ["Plancha", "3 × 30–40 s"]],
+  B: [["Sentadilla goblet con mancuerna", "3 × 8–12"], ["Remo sentado en máquina", "3 × 8–12"], ["Press de hombro con mancuernas", "3 × 8–12"], ["Hip thrust", "3 × 8–12"], ["Crunch en polea", "3 × 10–15"]],
+  C: [["Peso muerto rumano con mancuernas", "3 × 8–12"], ["Press inclinado", "3 × 8–12"], ["Remo con mancuerna", "3 × 8–12 por brazo"], ["Extensión de cuádriceps", "3 × 10–12"], ["Bíceps y tríceps", "2 × 10–12 cada uno"]]
+};
+const MEALS = [
+  ["Clase", "Desayuno", "Bocadillo de pan integral (80 g) con 60 g de pavo o pollo + 1 fruta."],
+  ["Clase", "Media mañana", "1 yogur skyr o yogur proteico."],
+  ["14:30", "Comida", "150 g de pollo, pavo o pescado (en crudo) + 70 g de arroz o pasta (en crudo) o 250 g de patata + verduras abundantes + 1 cucharada de aceite de oliva."],
+  ["17:30", "Merienda", "150 g de skyr + 1 fruta + un puñado pequeño de frutos secos (15 g)."],
+  ["21:00", "Cena", "Tortilla de 3 huevos o 150 g de pescado + ensalada grande + 1 rebanada de pan."]
+];
+const BUSINESS = { 1: "Aprender: cursos y tutoriales", 2: "Editar vídeos", 3: "Publicar, responder y buscar clientes", 5: "Revisar qué ha funcionado y planificar" };
+
+function midnight(d) { return new Date(d.getFullYear(), d.getMonth(), d.getDate()); }
+function ymd(d) { return d.getFullYear() + "-" + String(d.getMonth() + 1).padStart(2, "0") + "-" + String(d.getDate()).padStart(2, "0"); }
+function dayIndex(d) { return Math.max(0, Math.round((midnight(d) - START) / DAY)); }
+function fmt(n) { return n.toLocaleString("es-ES", { minimumFractionDigits: 1, maximumFractionDigits: 1 }); }
+
+function stepsTarget(idx) {
+  if (idx < 56) return "7.000–8.000 pasos";
+  if (idx < 120) return "9.000–10.000 pasos";
+  return "10.000 pasos o más";
+}
+function gymLetter(date) {
+  let n = 0;
+  const d = new Date(START.getTime());
+  d.setDate(d.getDate() + GYM_FROM_DAY);
+  const end = midnight(date);
+  while (d <= end) {
+    const w = d.getDay();
+    if (w === 1 || w === 3 || w === 5) n++;
+    d.setDate(d.getDate() + 1);
+  }
+  return ["A", "B", "C"][(Math.max(n, 1) - 1) % 3];
+}
+function workoutFor(date) {
+  const idx = dayIndex(date);
+  const dow = date.getDay();
+  const gym = idx >= GYM_FROM_DAY;
+  if (dow === 0) return { kind: "rest", title: "Descanso", detail: "Paseo suave si te apetece." };
+  if (dow === 6) return { kind: "walk", title: "Caminata larga", detail: "45–60 minutos a buen ritmo." };
+  if (dow === 2) return { kind: "walk", title: "Caminar 30 minutos", detail: "Día sin fuerza: camina y recupera." };
+  if (!gym) return { kind: "home", title: "Circuito en casa", detail: "3 vueltas, 60–90 s de descanso entre ejercicios." };
+  if (dow === 4) return { kind: "cardio", title: "Cardio suave", detail: "30–40 min de cinta inclinada, bici o caminar." };
+  const L = gymLetter(date);
+  return { kind: "gym", letter: L, title: "Gimnasio, día " + L, detail: "3 series de cada ejercicio + cardio al final según tu etapa." };
+}
+function scheduleFor(date) {
+  const dow = date.getDay();
+  if (dow === 4) return [
+    ["8:00", "Levantarse y desayunar en casa"],
+    ["9:00", "Emprendimiento", "Bloque largo: lo más importante de la semana"],
+    ["12:00", "Ejercicio"],
+    ["14:00", "Comida"],
+    ["16:00", "Estudio, tareas de clase o grabar contenido"],
+    ["21:00", "Cena"],
+    ["23:00", "Dormir"]
+  ];
+  if (dow === 6) return [
+    ["Mañana", "Caminata larga", "45–60 minutos"],
+    ["Tarde", "Grabar y editar el contenido de la semana"],
+    ["Comida o cena", "Tu comida libre de la semana"],
+    ["23:00", "Dormir"]
+  ];
+  if (dow === 0) return [
+    ["Mañana", "Descanso"],
+    ["Tarde", "Planificar la semana"],
+    ["Tarde", "Preparar tápers para un par de días"],
+    ["23:00", "Dormir"]
+  ];
+  return [
+    ["7:00", "Levantarse y preparar el desayuno para llevar"],
+    ["8:00", "Clase", "Desayuno y media mañana en los descansos"],
+    ["14:30", "Comida"],
+    ["15:15", "Descanso", "Siesta de 20 min como máximo"],
+    ["16:30", "Ejercicio"],
+    ["17:30", "Merienda y ducha"],
+    ["18:00", "Emprendimiento", BUSINESS[dow]],
+    ["20:00", "Libre o estudio"],
+    ["21:00", "Cena"],
+    ["22:30", "Fuera el móvil"],
+    ["23:00", "Dormir"]
+  ];
+}
+function toMinutes(t) { const m = /^(\d{1,2}):(\d{2})$/.exec(t); return m ? (+m[1]) * 60 + (+m[2]) : null; }
+
+/* ---------- State ---------- */
+const LKEY = "mi-rutina-v1";
+let state = { weights: [], checks: {} };
+try {
+  const raw = localStorage.getItem(LKEY);
+  if (raw) {
+    const p = JSON.parse(raw);
+    if (Array.isArray(p.weights)) state.weights = p.weights;
+    if (p.checks && typeof p.checks === "object") state.checks = p.checks;
+  }
+} catch (e) {}
+
+let dbRef = null, writing = false, pending = false, timer = null;
+function prune() {
+  const keys = Object.keys(state.checks).sort();
+  while (keys.length > 90) delete state.checks[keys.shift()];
+}
+function save() {
+  prune();
+  try { localStorage.setItem(LKEY, JSON.stringify(state)); } catch (e) {}
+  if (!dbRef) return;
+  clearTimeout(timer);
+  timer = setTimeout(flush, 700);
+}
+async function flush() {
+  if (!dbRef) return;
+  if (writing) { pending = true; return; }
+  writing = true;
+  try {
+    await dbRef.set({ weights: state.weights, checks: state.checks });
+    setSync("Guardado en tu cuenta de Claude.");
+  } catch (e) {
+    setSync("Guardado en este dispositivo. No se ha podido sincronizar con tu cuenta.");
+  }
+  writing = false;
+  if (pending) { pending = false; flush(); }
+}
+function setSync(t) { document.getElementById("sync").textContent = t; }
+
+/* ---------- Render: Hoy ---------- */
+const today = new Date();
+const todayKey = ymd(today);
+const $ = id => document.getElementById(id);
+
+function renderHoy() {
+  const idx = dayIndex(today);
+  const week = Math.floor(idx / 7) + 1;
+  const gym = idx >= GYM_FROM_DAY;
+  $("hDay").textContent = today.getDate();
+  const wd = today.toLocaleDateString("es-ES", { weekday: "long" });
+  $("hWeekday").textContent = wd.charAt(0).toUpperCase() + wd.slice(1);
+  $("hPhase").textContent = "Semana " + week + ", " + (gym ? "fase de gimnasio" : "fase en casa");
+
+  const wo = workoutFor(today);
+  const items = [
+    ["entreno", wo.title, wo.detail],
+    ["pasos", stepsTarget(idx), "Cuenta todo lo que camines en el día."],
+    ["agua", "2 litros de agua", "Lleva una botella a clase."],
+    ["comidas", "Comer según el plan", "Una comida libre a la semana, no más."],
+    ["dormir", "Dormir antes de las 23:00", "Sin móvil desde las 22:30."]
+  ];
+  const done = state.checks[todayKey] || [];
+  const ul = $("checks");
+  ul.innerHTML = "";
+  items.forEach(([key, title, sub]) => {
+    const li = document.createElement("li");
+    const b = document.createElement("button");
+    b.className = "check";
+    b.setAttribute("aria-pressed", String(done.includes(key)));
+    const box = document.createElement("span"); box.className = "box";
+    const tx = document.createElement("span"); tx.className = "ctext";
+    tx.textContent = title;
+    const sm = document.createElement("small"); sm.textContent = sub;
+    tx.appendChild(sm);
+    b.append(box, tx);
+    b.addEventListener("click", () => {
+      const list = state.checks[todayKey] || [];
+      const i = list.indexOf(key);
+      if (i >= 0) list.splice(i, 1); else list.push(key);
+      state.checks[todayKey] = list;
+      save();
+      renderHoy();
+    });
+    li.appendChild(b);
+    ul.appendChild(li);
+  });
+  const n = done.length;
+  $("meterBar").style.width = (n / items.length * 100) + "%";
+  $("meterLabel").textContent = n === items.length ? "Todo hecho. Buen día." : n + " de " + items.length + " hechas";
+
+  const tl = $("timeline");
+  tl.innerHTML = "";
+  const sched = scheduleFor(today);
+  const nowMin = today.getHours() * 60 + today.getMinutes();
+  let current = -1;
+  sched.forEach((s, i) => { const m = toMinutes(s[0]); if (m !== null && m <= nowMin) current = i; });
+  sched.forEach(([t, w, sub], i) => {
+    const li = document.createElement("li");
+    if (i === current) li.className = "now";
+    const a = document.createElement("span"); a.className = "t"; a.textContent = t;
+    const b = document.createElement("span"); b.className = "w"; b.textContent = w;
+    if (sub) { const s = document.createElement("small"); s.textContent = sub; b.appendChild(s); }
+    li.append(a, b);
+    tl.appendChild(li);
+  });
+}
+
+/* ---------- Render: Entreno ---------- */
+let showGym = dayIndex(today) >= GYM_FROM_DAY;
+function exList(rows, withTips) {
+  const ul = document.createElement("ul");
+  ul.className = "ex";
+  rows.forEach(r => {
+    const li = document.createElement("li");
+    const name = document.createElement("span");
+    name.textContent = r[0];
+    if (withTips && r[2]) { const tip = document.createElement("span"); tip.className = "tip"; tip.textContent = r[2]; name.appendChild(tip); }
+    const reps = document.createElement("span"); reps.className = "reps"; reps.textContent = r[1];
+    li.append(name, reps);
+    ul.appendChild(li);
+  });
+  return ul;
+}
+function card(title, note, child, tagText, tagToday) {
+  const c = document.createElement("div");
+  c.className = "card";
+  if (tagText) { const t = document.createElement("span"); t.className = "tag" + (tagToday ? " today" : ""); t.textContent = tagText; c.appendChild(t); }
+  const h = document.createElement("h2"); h.textContent = title; c.appendChild(h);
+  if (note) { const p = document.createElement("p"); p.className = "note"; p.textContent = note; c.appendChild(p); }
+  if (child) c.appendChild(child);
+  return c;
+}
+function renderEntreno() {
+  const idx = dayIndex(today);
+  const gymStartsIn = GYM_FROM_DAY - idx;
+  $("eSub").textContent = gymStartsIn > 0
+    ? "Fase en casa. Empiezas el gimnasio en " + Math.ceil(gymStartsIn / 7) + (Math.ceil(gymStartsIn / 7) === 1 ? " semana." : " semanas.")
+    : "Fase de gimnasio. Intenta subir un poco el peso cada semana o dos.";
+
+  const wo = workoutFor(today);
+  const t = $("eToday");
+  t.innerHTML = "";
+  const tag = document.createElement("span"); tag.className = "tag today"; tag.textContent = "Hoy";
+  const h = document.createElement("h2"); h.textContent = wo.title;
+  const p = document.createElement("p"); p.className = "note"; p.textContent = wo.detail;
+  t.append(tag, h, p);
+  if (wo.kind === "home") t.appendChild(exList(HOME, true));
+  if (wo.kind === "gym") t.appendChild(exList(GYM[wo.letter], false));
+
+  $("segCasa").setAttribute("aria-pressed", String(!showGym));
+  $("segGym").setAttribute("aria-pressed", String(showGym));
+  const body = $("eBody");
+  body.innerHTML = "";
+  if (!showGym) {
+    body.appendChild(card("Circuito en casa", "Lunes, miércoles, jueves y viernes. 3 vueltas, 60–90 s de descanso entre ejercicios. Evita saltos para cuidar rodillas y tobillos.", exList(HOME, true), "Semanas 1–6"));
+    body.appendChild(card("El resto de días", "Martes: caminar 30 minutos. Sábado: caminata larga de 45–60 minutos. Domingo: descanso.", null));
+  } else {
+    const L = wo.kind === "gym" ? wo.letter : null;
+    ["A", "B", "C"].forEach(k => {
+      body.appendChild(card("Día " + k, null, exList(GYM[k], false), L === k ? "Toca hoy" : "Desde la semana 7", L === k));
+    });
+    body.appendChild(card("Cómo organizarlo", "Lunes, miércoles y viernes, alternando A, B y C. Termina cada sesión con cinta inclinada o bici. Jueves: cardio suave. Martes y sábado: caminar. Domingo: descanso.", null));
+  }
+}
+$("segCasa").addEventListener("click", () => { showGym = false; renderEntreno(); });
+$("segGym").addEventListener("click", () => { showGym = true; renderEntreno(); });
+
+/* ---------- Render: Comida ---------- */
+function renderComida() {
+  const box = $("meals");
+  box.innerHTML = "";
+  MEALS.forEach(([t, name, desc]) => {
+    const row = document.createElement("div"); row.className = "meal";
+    const a = document.createElement("span"); a.className = "t"; a.textContent = t;
+    const b = document.createElement("span");
+    const bn = document.createElement("b"); bn.textContent = name;
+    b.appendChild(bn);
+    b.appendChild(document.createTextNode(desc));
+    row.append(a, b);
+    box.appendChild(row);
+  });
+}
+
+/* ---------- Render: Progreso ---------- */
+function sortedWeights() { return state.weights.slice().sort((a, b) => a.d.localeCompare(b.d)); }
+function renderProgreso() {
+  const ws = sortedWeights();
+  const startW = ws.length ? Math.max(START_WEIGHT, ws[0].kg) : START_WEIGHT;
+  if (ws.length) {
+    const now = ws[ws.length - 1].kg;
+    $("sNow").textContent = fmt(now);
+    $("sLost").textContent = fmt(Math.max(0, startW - now));
+    $("sLeft").textContent = now <= GOAL ? "¡Ya!" : fmt(now - GOAL);
+  } else {
+    $("sNow").textContent = "–"; $("sLost").textContent = "–"; $("sLeft").textContent = fmt(START_WEIGHT - GOAL);
+  }
+
+  // Chart
+  const chart = $("chart");
+  if (ws.length < 2) {
+    chart.innerHTML = '<p class="note">Guarda al menos dos pesos para ver la gráfica.</p>';
+  } else {
+    const W = 320, H = 170, pl = 34, pr = 10, pt = 10, pb = 24;
+    const t0 = new Date(ws[0].d).getTime(), t1 = new Date(ws[ws.length - 1].d).getTime();
+    const span = Math.max(t1 - t0, DAY);
+    const vals = ws.map(w => w.kg);
+    const ymin = Math.floor(Math.min(GOAL, ...vals) - 1), ymax = Math.ceil(Math.max(...vals) + 1);
+    const x = t => pl + (t - t0) / span * (W - pl - pr);
+    const y = v => pt + (ymax - v) / (ymax - ymin) * (H - pt - pb);
+    const pts = ws.map(w => x(new Date(w.d).getTime()).toFixed(1) + "," + y(w.kg).toFixed(1)).join(" ");
+    const css = getComputedStyle(document.documentElement);
+    const red = css.getPropertyValue("--red").trim(), ink = css.getPropertyValue("--ink").trim(), muted = css.getPropertyValue("--muted").trim(), line = css.getPropertyValue("--line").trim();
+    let grid = "";
+    const step = Math.max(1, Math.round((ymax - ymin) / 4));
+    for (let v = ymin; v <= ymax; v += step) {
+      grid += '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(v) + '" y2="' + y(v) + '" stroke="' + line + '" stroke-width="1"/>' +
+              '<text x="' + (pl - 6) + '" y="' + (y(v) + 4) + '" text-anchor="end" font-size="11" fill="' + muted + '">' + v + '</text>';
+    }
+    const dots = ws.map(w => '<circle cx="' + x(new Date(w.d).getTime()) + '" cy="' + y(w.kg) + '" r="3" fill="' + ink + '"/>').join("");
+    const lab = d => new Date(d).toLocaleDateString("es-ES", { day: "numeric", month: "short" });
+    chart.innerHTML = '<svg class="chart" viewBox="0 0 ' + W + ' ' + H + '" role="img" aria-label="Gráfica de peso">' + grid +
+      '<line x1="' + pl + '" x2="' + (W - pr) + '" y1="' + y(GOAL) + '" y2="' + y(GOAL) + '" stroke="' + red + '" stroke-width="2" stroke-dasharray="5 5"/>' +
+      '<polyline points="' + pts + '" fill="none" stroke="' + ink + '" stroke-width="2.5" stroke-linejoin="round" stroke-linecap="round"/>' + dots +
+      '<text x="' + pl + '" y="' + (H - 6) + '" font-size="11" fill="' + muted + '">' + lab(ws[0].d) + '</text>' +
+      '<text x="' + (W - pr) + '" y="' + (H - 6) + '" text-anchor="end" font-size="11" fill="' + muted + '">' + lab(ws[ws.length - 1].d) + '</text></svg>';
+  }
+
+  // Weekly averages
+  const weekly = $("weekly");
+  weekly.innerHTML = "";
+  const groups = {};
+  ws.forEach(w => { const wk = Math.floor(dayIndex(new Date(w.d + "T12:00:00")) / 7) + 1; (groups[wk] = groups[wk] || []).push(w.kg); });
+  const keys = Object.keys(groups).map(Number).sort((a, b) => b - a).slice(0, 8);
+  if (!keys.length) {
+    const li = document.createElement("li"); li.textContent = "Aún no hay datos."; li.style.color = "var(--muted)"; weekly.appendChild(li);
+  }
+  keys.forEach(k => {
+    const arr = groups[k];
+    const avg = arr.reduce((s, v) => s + v, 0) / arr.length;
+    const li = document.createElement("li");
+    const a = document.createElement("span"); a.textContent = "Semana " + k;
+    const b = document.createElement("b"); b.textContent = fmt(avg) + " kg";
+    li.append(a, b);
+    weekly.appendChild(li);
+  });
+
+  // Entries
+  const ent = $("entries");
+  ent.innerHTML = "";
+  if (!ws.length) {
+    const li = document.createElement("li"); li.textContent = "Todavía no has guardado ningún peso."; li.style.color = "var(--muted)"; ent.appendChild(li);
+  }
+  ws.slice().reverse().forEach(w => {
+    const li = document.createElement("li");
+    const a = document.createElement("span");
+    a.textContent = new Date(w.d + "T12:00:00").toLocaleDateString("es-ES", { weekday: "short", day: "numeric", month: "short" }) + ": " + fmt(w.kg) + " kg";
+    const del = document.createElement("button"); del.className = "del"; del.textContent = "Borrar";
+    del.setAttribute("aria-label", "Borrar el registro de " + a.textContent);
+    del.addEventListener("click", () => {
+      state.weights = state.weights.filter(x => x.d !== w.d);
+      save(); renderProgreso();
+    });
+    li.append(a, del);
+    ent.appendChild(li);
+  });
+}
+$("wSave").addEventListener("click", () => {
+  const raw = $("wInput").value.trim().replace(",", ".");
+  const kg = parseFloat(raw);
+  if (!isFinite(kg) || kg < 30 || kg > 250) {
+    $("wMsg").textContent = "Escribe tu peso en kilos, por ejemplo 81,4.";
+    return;
+  }
+  const v = Math.round(kg * 10) / 10;
+  state.weights = state.weights.filter(x => x.d !== todayKey);
+  state.weights.push({ d: todayKey, kg: v });
+  save();
+  $("wInput").value = "";
+  $("wMsg").textContent = "Peso guardado: " + fmt(v) + " kg.";
+  renderProgreso();
+});
+$("wInput").addEventListener("keydown", e => { if (e.key === "Enter") $("wSave").click(); });
+
+
+/* ---------- Ideas ---------- */
+const CATS = { e: "Ecommerce", v: "Vídeo", t: "Tutorial" };
+const IDEAS = [
+  ["v", "Día 1 de perder 17 kg siendo estudiante", "Grábate 30 segundos contando tu objetivo y enseñando lo que comes hoy. Publica una actualización cada semana y en unos meses tendrás una serie con una historia que la gente quiere seguir.", "Graba el vídeo esta noche con el móvil apoyado en algo estable y luz de frente."],
+  ["e", "Soportes de móvil con nombre impresos en 3D", "Un soporte de escritorio personalizado con el nombre o las iniciales del cliente. Coste de material muy bajo y se vende bien como regalo.", "Diseña 3 modelos distintos e imprime uno para hacerle fotos."],
+  ["t", "Subtítulos automáticos en CapCut en 60 segundos", "Enseña paso a paso cómo poner subtítulos automáticos, cambiar el estilo y corregir errores. Es una de las búsquedas más comunes de quien empieza.", "Graba la pantalla del móvil mientras lo haces y narra encima."],
+  ["e", "Organizadores de escritorio modulares", "Piezas impresas en 3D que encajan entre sí (portalápices, bandejas, soporte de cascos). El cliente compra un pack y luego vuelve a por más módulos.", "Dibuja en papel 4 módulos que encajen con la misma medida base."],
+  ["v", "Lo que como en un día con presupuesto de estudiante", "Enseña tus comidas del día con el precio de cada una. Los vídeos de comida barata y sana tienen mucho público entre gente joven.", "Apunta lo que gastas en la compra de esta semana para tener datos reales."],
+  ["t", "Tu primera web en HTML en 10 minutos", "Un tutorial para gente que nunca ha programado: crear un archivo, escribir una página sencilla y abrirla en el navegador. Aprovecha lo que ya sabes de clase.", "Escribe el guion en 5 pasos y prepara el código de ejemplo antes de grabar."],
+  ["e", "Llaveros personalizados para bodas y eventos", "Llaveros con nombres o fechas como detalle para invitados. Los eventos piden cantidades grandes de golpe, así que un pedido puede ser de 50–100 unidades.", "Imprime 5 muestras con nombres distintos para enseñarlas en fotos."],
+  ["v", "Antes y después de editar", "El mismo clip sin editar y después editado, con cortes, música y subtítulos. Demuestra tu habilidad en 15 segundos y sirve como anuncio para conseguir clientes.", "Elige un clip aburrido que tengas en el carrete para transformarlo."],
+  ["t", "5 atajos de DaVinci Resolve que ahorran horas", "Un vídeo corto con los atajos que más usas al editar. Formato de lista rápido que la gente guarda para verlo más tarde.", "Apunta los atajos que usas sin pensar durante tu próxima sesión de edición."],
+  ["e", "Pack de filtros de color para vídeos de móvil", "Un producto digital: filtros o LUTs con un estilo concreto (cálido, cine, nocturno). Se crea una vez y se vende infinitas veces sin envíos.", "Crea 3 filtros en DaVinci y aplícalos al mismo clip para comparar."],
+  ["v", "Construyendo un kart eléctrico desde cero", "Una serie documentando cada fase: diseño, piezas impresas, motor, primera prueba. Los proyectos de construcción enganchan porque la gente quiere ver el final.", "Graba el estado actual del proyecto aunque esté a medias, es el episodio 1."],
+  ["t", "Animaciones en pantalla OLED con ESP32", "Explica cómo mostrar una animación simple en una pantalla pequeña. Hay mucha gente maker buscando tutoriales claros en español.", "Prepara un ejemplo mínimo que funcione antes de pensar en el vídeo."],
+  ["e", "Plantillas de vídeo para negocios locales", "Plantillas editables en CapCut para restaurantes, peluquerías o gimnasios: el dueño solo cambia sus fotos y textos.", "Haz una plantilla para un tipo de negocio y prueba a ofrecérsela a uno cercano."],
+  ["v", "Entreno en casa en tiempo real", "Grábate haciendo tu rutina completa en casa para que la gente entrene contigo. Es útil, motivador y te obliga a no saltarte el entreno.", "Coloca el móvil en horizontal para que se vea todo el cuerpo."],
+  ["t", "3 transiciones de creadores grandes", "Explica cómo se hacen 3 transiciones populares (giro de cámara, tapar el objetivo, salto de corte). Formato rápido y muy compartible.", "Busca 3 vídeos virales y fíjate en qué transición usan."],
+  ["e", "Lámparas con foto en 3D (litofanías)", "Se imprime una foto del cliente que solo se ve al encender la luz. Es un regalo personal que se puede vender a buen precio.", "Imprime una litofanía de prueba con una foto tuya para ver la calidad."],
+  ["v", "Pongo a prueba productos virales", "Compra un producto barato que esté de moda y comprueba si de verdad funciona. Las reseñas honestas generan confianza y comentarios.", "Elige un producto de menos de 10 € que hayas visto varias veces esta semana."],
+  ["t", "Buena luz solo con una ventana", "Enseña cómo colocarte respecto a la ventana para que la cara se vea bien sin comprar focos. Muy útil para creadores que empiezan.", "Haz fotos de prueba en 3 posiciones distintas frente a la ventana."],
+  ["e", "Edición de vídeo por suscripción", "Ofrece a pequeños negocios un paquete mensual de 4 vídeos editados. Ingresos fijos cada mes en lugar de trabajos sueltos.", "Calcula cuánto tardas en editar un vídeo para poner un precio que te compense."],
+  ["v", "Un día en mi vida: clase, gym y emprender", "Muestra tu día completo en 60 segundos. La gente conecta con rutinas reales de estudiantes que intentan mejorar.", "Graba clips de 3 segundos en cada momento del día de mañana."],
+  ["t", "Cuánto cobrar por editar un vídeo", "Explica cómo calcular un precio según tiempo, dificultad y experiencia. Duda muy frecuente entre editores principiantes.", "Haz una tabla sencilla con tus horas y el precio que quieres ganar por hora."],
+  ["e", "Accesorios para setups gamer", "Soportes de auriculares, mandos o cables impresos en 3D. Público joven que gasta en mejorar su escritorio.", "Mira qué accesorios de este tipo se venden más en Etsy y anota precios."],
+  ["v", "Reacciono a mis primeros vídeos", "Comenta tus primeros vídeos editados y enseña qué has mejorado. Demuestra progreso y anima a otros que están empezando.", "Guarda desde hoy una copia de cada vídeo que edites para usarla después."],
+  ["t", "Escribir guiones de vídeos cortos con IA", "Enseña cómo usar la IA para sacar ideas, ganchos y guiones, y cómo darles tu toque personal para que no suenen genéricos.", "Prueba a pedir 5 ganchos para un mismo vídeo y elige el mejor."],
+  ["e", "Piezas de recambio bajo pedido", "Clips, tapones, ruedas o piezas rotas que ya no se venden. La gente paga por arreglar algo en vez de tirarlo.", "Publica en Wallapop que imprimes piezas a medida y espera los primeros mensajes."],
+  ["v", "Pregúntale a un estudiante de programación", "Responde preguntas reales sobre estudiar programación: qué se aprende, si es difícil, salidas. Formato de serie fácil de mantener.", "Escribe 10 preguntas que te hicieron antes de empezar la carrera."],
+  ["t", "Subtítulos palabra por palabra", "Explica cómo hacer los subtítulos dinámicos que resaltan cada palabra. Es el estilo más usado en vídeos virales ahora mismo.", "Haz una versión de prueba con un audio de 10 segundos."],
+  ["e", "Plantillas de organización para estudiantes", "Plantillas digitales para organizar asignaturas, exámenes y tareas. Producto digital sin coste de envío.", "Crea la plantilla que tú usarías este trimestre y pídele opinión a un compañero."],
+  ["v", "5 tápers en 1 hora", "Prepara la comida de varios días mientras grabas. Los vídeos de meal prep son prácticos y la gente los guarda.", "Planifica 2 recetas sencillas del plan de comidas para el domingo."],
+  ["t", "Timelapse de impresión 3D perfecto", "Enseña cómo grabar un timelapse donde la pieza parece crecer sola. Este tipo de vídeo es muy llamativo en redes.", "Busca una forma estable de fijar el móvil frente a la impresora."],
+  ["e", "Macetas con diseño geométrico", "Macetas y portamacetas impresas en 3D con formas originales. Se venden bien en mercadillos y tiendas online de decoración.", "Imprime una maceta pequeña y fotografíala con una planta real."],
+  ["v", "Cuánto he ganado este mes emprendiendo", "Enseña de forma transparente ingresos, gastos y lo que aprendiste, aunque sea poco. La honestidad genera mucha confianza.", "Empieza hoy una hoja donde apuntes cada euro que entra y sale."],
+  ["t", "Montar una tienda online en una tarde", "Paso a paso para crear una tienda sencilla: productos, fotos, precios y método de pago. Te sirve como tutorial y como práctica para tu propia tienda.", "Abre una cuenta de prueba y anota cada paso que das."],
+  ["e", "Detalles con identidad caribeña", "Llaveros, imanes o decoración con motivos caribeños para la comunidad latina en España. Un nicho con identidad y poca competencia específica.", "Diseña 2 productos y enséñalos a gente de tu entorno para ver cuál gusta más."],
+  ["v", "Errores de mi primer mes en el gym", "Cuenta lo que hiciste mal y cómo lo corregiste. Muy útil para quien empieza y fácil de grabar.", "Apunta cada semana una cosa que hayas aprendido entrenando."],
+  ["t", "Limpiar la voz de un vídeo gratis", "Enseña cómo quitar ruido de fondo y mejorar el audio con herramientas gratuitas. El mal audio es el error más común de los principiantes.", "Graba un audio en un sitio con ruido para usarlo como ejemplo."],
+  ["e", "Kits de electrónica para principiantes", "Un pack con placa, sensores y una guía en PDF para hacer un primer proyecto. Vendes las piezas y tu conocimiento a la vez.", "Haz una lista de lo que necesitarías para el proyecto más sencillo que sepas hacer."],
+  ["v", "De la idea al envío", "Muestra el proceso completo de un producto tuyo: diseño, impresión, empaquetado y envío. Contenido que a la vez promociona tu tienda.", "Graba cada fase la próxima vez que hagas una pieza, aunque sea para ti."],
+  ["t", "El gancho de los 3 primeros segundos", "Explica con ejemplos cómo empezar un vídeo para que la gente no lo pase. Es lo que más influye en las visualizaciones.", "Reescribe el inicio de tu último vídeo de 3 formas distintas."],
+  ["e", "Fundas y soportes para localizadores", "Fundas para localizadores tipo AirTag que se enganchan a llaves, mochilas o mascotas. Pieza pequeña, rápida de imprimir y barata de enviar.", "Mide un localizador y diseña una funda sencilla."],
+  ["v", "POV: estudiante que entrena y emprende", "Vídeo corto en formato POV mostrando una situación con la que tu público se identifique. Formato rápido de grabar y muy compartido.", "Piensa 3 situaciones graciosas de tu día a día."],
+  ["t", "App del tiempo con una API gratuita", "Programa una app sencilla que muestre el tiempo de tu ciudad. Buen tutorial de programación para principiantes y una base para proyectos más grandes.", "Busca una API del tiempo gratuita y prueba a pedirle datos."],
+  ["e", "Pegatinas y tarjetas para pequeños negocios", "Diseña packaging personalizado (pegatinas, tarjetas de agradecimiento) para otras tiendas online que empiezan.", "Diseña un ejemplo para un negocio inventado y úsalo como muestra."],
+  ["v", "Comida casera contra comida rápida", "Compara una comida de casa con una de comida rápida en precio y calorías. Formato de comparación que genera debate en comentarios.", "Elige una comida rápida que te guste y busca cómo hacer una versión casera."],
+  ["t", "De horizontal a vertical sin perder calidad", "Explica cómo adaptar un vídeo horizontal a formato vertical encuadrando bien a la persona. Problema muy común para quien reutiliza contenido.", "Prepara un clip horizontal con alguien moviéndose para el ejemplo."],
+  ["e", "Cajas sorpresa mensuales", "Una caja temática (gaming, maker o estudio) con varios productos pequeños cada mes. Suscripción con ingresos repetidos.", "Haz una lista de 5 productos que meterías en la primera caja y su coste."],
+  ["v", "Actualización semanal de progreso", "Cada semana, un vídeo corto con tu peso, cómo te sientes y lo que has comido. La constancia hace que la gente vuelva a ver la siguiente parte.", "Elige un día fijo de la semana para grabar siempre la actualización."],
+  ["t", "Diseña tu primera pieza para imprimir", "Enseña a diseñar una pieza simple en un programa gratuito y prepararla para imprimir. Muchos compran impresora y no saben diseñar.", "Elige una pieza útil y sencilla, como un gancho o un clip."],
+  ["e", "Soportes de pared para consolas y mandos", "Soportes impresos en 3D para colgar mandos, auriculares o la consola. Producto práctico con mucha demanda en habitaciones gamer.", "Mide el mando que tengas en casa y diseña un soporte de pared."],
+  ["v", "Le edito gratis un vídeo a un negocio del barrio", "Grábate proponiéndolo y enseña el resultado. Te da contenido, portfolio y quizá tu primer cliente de pago.", "Elige 2 negocios cercanos que tengan redes sociales poco cuidadas."],
+  ["t", "Música sin problemas de derechos", "Explica dónde encontrar música libre y cómo evitar que te silencien un vídeo. Duda frecuente de cualquier creador.", "Busca 3 bibliotecas de música gratuita y prueba a descargar una canción."],
+  ["e", "Placas para mascotas con nombre o QR", "Chapas impresas en 3D con el nombre de la mascota o un código QR con el teléfono del dueño. Pequeñas, personalizadas y baratas de enviar.", "Diseña una chapa de prueba con el nombre de una mascota que conozcas."],
+  ["v", "3 herramientas gratis que uso cada día", "Recomienda las apps o programas que más te ayudan como estudiante y creador. Formato de lista que la gente guarda.", "Apunta qué herramientas has abierto hoy y elige las 3 más útiles."],
+  ["t", "Miniaturas que llaman la atención", "Enseña cómo diseñar una miniatura con buen contraste, cara visible y poco texto. Sube mucho los clics en YouTube.", "Rediseña la miniatura de un vídeo tuyo o de un vídeo que te guste."],
+  ["e", "Venta de plantillas de vídeo", "Intros, títulos animados y rótulos listos para usar, vendidos en tiendas de recursos para editores. Producto digital que aprovecha lo que ya practicas.", "Crea una intro de 5 segundos y guárdala como plantilla reutilizable."],
+  ["v", "Aprendo la técnica de un ejercicio cada semana", "Cada semana eliges un ejercicio, aprendes la técnica correcta y enseñas tu antes y después. Útil y demuestra tu progreso real.", "Grábate haciendo una sentadilla hoy para tener la primera referencia."],
+  ["t", "Organiza tus proyectos de vídeo", "Explica una estructura de carpetas para no perder clips, música ni versiones. Algo que todos los editores sufren y pocos explican.", "Ordena tus archivos de vídeo actuales con una estructura sencilla."],
+  ["e", "Accesorios para el coche impresos en 3D", "Soportes de móvil para la rejilla, organizadores para la puerta o ganchos para bolsas. Productos útiles con mucho público.", "Fíjate en qué echas en falta dentro de un coche y anótalo."],
+  ["v", "Lo que me hubiera gustado saber antes de emprender", "Comparte los aprendizajes de tus primeros meses. Funciona bien cuando ya llevas un tiempo y tienes ejemplos reales.", "Abre una nota donde vayas apuntando cada error y cada lección."],
+  ["t", "Qué mirar en las estadísticas de tus vídeos", "Explica qué significan la retención, el tiempo de visualización y las veces compartido, y cómo usarlo para mejorar. Muy útil para creadores que no crecen.", "Abre las estadísticas de tu último vídeo y mira en qué segundo se va la gente."]
+];
+const IKEY = "idea-del-dia-v1";
+let istate = { done: [], saved: [] };
+try {
+  const r = localStorage.getItem(IKEY);
+  if (r) { const p = JSON.parse(r); istate.done = Array.isArray(p.done) ? p.done : []; istate.saved = Array.isArray(p.saved) ? p.saved : []; }
+} catch (e) {}
+function isave() { try { localStorage.setItem(IKEY, JSON.stringify(istate)); } catch (e) {} }
+function ideaAt(off) { const n = IDEAS.length; return ((off % n) + n) % n; }
+const iTodayOff = dayIndex(today);
+let iOff = iTodayOff;
+let iShowSaved = false;
+const reduceMotion = window.matchMedia("(prefers-reduced-motion: reduce)").matches;
+
+function renderIdea() {
+  const d = new Date(START.getTime()); d.setDate(START.getDate() + iOff);
+  const idx = ideaAt(iOff);
+  const [c, t, desc, step] = IDEAS[idx];
+  $("iNum").textContent = d.getDate();
+  const wd = d.toLocaleDateString("es-ES", { weekday: "long" });
+  $("iWd").textContent = wd.charAt(0).toUpperCase() + wd.slice(1);
+  $("iMo").textContent = d.toLocaleDateString("es-ES", { month: "long", year: "numeric" });
+  $("iCat").textContent = CATS[c]; $("iCat").className = "i-cat " + c;
+  $("iTitle").textContent = t; $("iDesc").textContent = desc; $("iStep").textContent = step;
+  const dn = istate.done.includes(idx), sv = istate.saved.includes(idx);
+  $("iDone").setAttribute("aria-pressed", String(dn)); $("iDone").textContent = dn ? "Hecha ✓" : "Hecha";
+  $("iSave").setAttribute("aria-pressed", String(sv)); $("iSave").textContent = sv ? "Guardada" : "Guardar";
+  $("iDoneMark").hidden = !dn;
+  $("iPrev").disabled = iOff <= 0; $("iNext").disabled = iOff >= iTodayOff;
+  $("iToday").hidden = iOff === iTodayOff;
+  const n = istate.done.length;
+  $("iStatus").textContent = n === 0 ? "Marca una idea como hecha cuando la lleves a cabo." : (n === 1 ? "Llevas 1 idea hecha." : "Llevas " + n + " ideas hechas.");
+}
+function iGo(off, dir) {
+  if (off === iOff) return;
+  const s = $("iSheet");
+  if (reduceMotion) { iOff = off; renderIdea(); return; }
+  s.classList.add(dir > 0 ? "go-f" : "go-b");
+  setTimeout(() => {
+    s.classList.remove("go-f", "go-b"); iOff = off; renderIdea();
+    s.classList.add("in"); setTimeout(() => s.classList.remove("in"), 280);
+  }, 300);
+}
+function itoggle(list, idx) { const i = istate[list].indexOf(idx); if (i >= 0) istate[list].splice(i, 1); else istate[list].push(idx); isave(); }
+$("iPrev").addEventListener("click", () => iGo(Math.max(0, iOff - 1), -1));
+$("iNext").addEventListener("click", () => iGo(Math.min(iTodayOff, iOff + 1), 1));
+$("iToday").addEventListener("click", () => iGo(iTodayOff, 1));
+$("iDone").addEventListener("click", () => { itoggle("done", ideaAt(iOff)); renderIdea(); });
+$("iSave").addEventListener("click", () => { itoggle("saved", ideaAt(iOff)); renderIdea(); });
+
+function renderSavedIdeas() {
+  const ul = $("iSavedList"); ul.innerHTML = "";
+  if (!istate.saved.length) {
+    const li = document.createElement("li");
+    li.style.color = "var(--muted)"; li.style.borderStyle = "dashed";
+    li.textContent = "Todavía no has guardado ninguna idea. Pulsa Guardar en la idea del día para tenerla aquí.";
+    ul.appendChild(li); return;
+  }
+  istate.saved.slice().reverse().forEach(idx => {
+    const [c, t, desc, step] = IDEAS[idx];
+    const li = document.createElement("li");
+    const cat = document.createElement("span"); cat.className = "i-cat " + c; cat.textContent = CATS[c];
+    const det = document.createElement("details");
+    const sum = document.createElement("summary"); sum.textContent = t;
+    const p1 = document.createElement("p"); p1.textContent = desc;
+    const p2 = document.createElement("p"); p2.textContent = "Primer paso: " + step;
+    det.append(sum, p1, p2);
+    const rm = document.createElement("button"); rm.className = "rm"; rm.textContent = "Quitar de guardadas";
+    rm.addEventListener("click", () => { itoggle("saved", idx); renderSavedIdeas(); });
+    li.append(cat, det, rm); ul.appendChild(li);
+  });
+}
+function renderIdeas() {
+  $("iSegHoy").setAttribute("aria-pressed", String(!iShowSaved));
+  $("iSegSaved").setAttribute("aria-pressed", String(iShowSaved));
+  $("iDayView").hidden = iShowSaved; $("iSavedView").hidden = !iShowSaved;
+  if (iShowSaved) renderSavedIdeas(); else renderIdea();
+}
+$("iSegHoy").addEventListener("click", () => { iShowSaved = false; renderIdeas(); });
+$("iSegSaved").addEventListener("click", () => { iShowSaved = true; renderIdeas(); });
+
+/* ---------- Routing ---------- */
+const VIEWS = ["hoy", "entreno", "comida", "progreso", "ideas"];
+function route() {
+  let v = location.hash.replace("#", "");
+  if (!VIEWS.includes(v)) v = "hoy";
+  VIEWS.forEach(n => { $("v-" + n).hidden = n !== v; });
+  document.querySelectorAll(".tabs a").forEach(a => a.setAttribute("aria-current", a.dataset.v === v ? "page" : "false"));
+  if (v === "hoy") renderHoy();
+  if (v === "entreno") renderEntreno();
+  if (v === "comida") renderComida();
+  if (v === "progreso") renderProgreso();
+  if (v === "ideas") renderIdeas();
+  window.scrollTo(0, 0);
+}
+window.addEventListener("hashchange", route);
+document.addEventListener("visibilitychange", () => {
+  if (document.visibilityState === "visible" && ymd(new Date()) !== todayKey) location.reload();
+});
+route();
+
+if ("serviceWorker" in navigator) {
+  window.addEventListener("load", () => { navigator.serviceWorker.register("sw.js").catch(() => {}); });
+}
+</script>
+</body>
+</html>
